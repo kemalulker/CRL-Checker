@@ -75,13 +75,13 @@ public class RevocationChecker extends UtilsClass {
                     continue;
                 }
 
-                if (!crlChecker.verifyIssuer()) {
-                    System.out.println("Issuer match check failed.");
+                if (crlChecker.isIndirect()) {
+                    System.out.println("Warning: Indirect CRL.");
                     continue;
                 }
 
-                if (crlChecker.isIndirect()) {
-                    System.out.println("Warning: Indirect CRL.");
+                if (!crlChecker.verifyIssuer()) {
+                    System.out.println("Issuer match check failed.");
                     continue;
                 }
 

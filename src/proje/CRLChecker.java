@@ -48,7 +48,7 @@ public class CRLChecker extends UtilsClass {
     }
 
     public ReasonFlags getReasons() {
-        /*ReasonFlags certReasons = certParser.getReasons();
+        /* ReasonFlags certReasons = certParser.getReasons();
         if (checkIDP()) {
             ReasonFlags crlReasons = crl.getCRLExtensions().getIssuingDistributionPoint().getOnlySomeReasons();
             if (crlReasons != null && certReasons != null) {
@@ -102,7 +102,7 @@ public class CRLChecker extends UtilsClass {
     }
 
     private boolean verifyIssuerPath(ECertificate currCert) throws IOException, ESYAException {
-        if (!currCert.getSubject().getCommonNameAttribute().equals(currCert.getIssuer().getCommonNameAttribute())) {
+        if (!isRoot(currCert)) {
             ECertificate upCert;
             do {
                 upCert = certParser.getIssuerCert(currCert);
@@ -120,7 +120,7 @@ public class CRLChecker extends UtilsClass {
                 }
                 currCert = upCert;
             }
-            while (!upCert.getSubject().getCommonNameAttribute().equals(upCert.getIssuer().getCommonNameAttribute()));
+            while (!isRoot(upCert));
             return verifyRootCert(upCert.getSubject().getCommonNameAttribute());
         }
         return verifyRootCert(currCert.getSubject().getCommonNameAttribute());
@@ -141,6 +141,10 @@ public class CRLChecker extends UtilsClass {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private boolean isRoot(ECertificate cert) {
+        return cert.isSelfIssued();
     }
 
     private boolean verifyKeyUsage(ECertificate cert) {
@@ -169,15 +173,16 @@ public class CRLChecker extends UtilsClass {
     }
 
     private boolean verifyOnlyContains() {
-        if (crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsUserCerts()) {
-            return !crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsCACerts() &&
-                    !crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsAttributeCerts();
-        } else if (crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsCACerts()) {
-            return !crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsUserCerts() &&
-                    !crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsAttributeCerts();
-        } else {
-            return false;
+        boolean onlyUserCerts = crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsUserCerts();
+        boolean onlyCaCerts = crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsCACerts();
+        boolean onlyAttributeCerts = crl.getCRLExtensions().getIssuingDistributionPoint().isOnlyContainsAttributeCerts();
+        if(onlyUserCerts && !onlyCaCerts) {
+            return !certParser.checkBasicConstraints() && !onlyAttributeCerts;
         }
+        else if(onlyCaCerts && onlyUserCerts) {
+            return certParser.checkBasicConstraints()  && !onlyAttributeCerts;
+        }
+        return false;
     }
 
     private boolean checkIDP() {

@@ -35,8 +35,11 @@ public class CertParser extends UtilsClass {
     }
 
     public String getIssuer() {
-        EName name = cert.getCRLIssuer() == null ? cert.getIssuer() : cert.getCRLIssuer();
-        return name.getCommonNameAttribute();
+        return cert.getIssuer().getCommonNameAttribute();
+    }
+
+    public boolean checkBasicConstraints() {
+        return cert.getExtensions().getBasicConstraints().isCA();
     }
 
     public ReasonFlags getReasons() {
@@ -56,7 +59,7 @@ public class CertParser extends UtilsClass {
     }
 
     private ECertificate getCertificate(ECertificate issuerCert) throws IOException, ESYAException {
-        if (issuerCert.getExtensions().getAuthorityInfoAccessSyntax() == null) {
+        if (issuerCert.isSelfIssued()) {
             return issuerCert;
         }
         List<String> issuerHTTPAddresses = issuerCert.getExtensions().getAuthorityInfoAccessSyntax().getCAIssuerAddresses();

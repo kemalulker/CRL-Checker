@@ -22,13 +22,11 @@ public class CertificateParser extends UtilsClass {
         String lN = parser.getLocalityName();
         String validFrom = parser.getValidFrom();
         String validTo = parser.getValidTo();
-        String crlHttpAddress = parser.getCRLHttpAddress();
         System.out.println("CN: " + cN);
         System.out.println("ON: " + oN);
         System.out.println("LN: " + lN);
         System.out.println("Valid From: " + validFrom);
         System.out.println("Valid To: " + validTo);
-        System.out.println("crlHttpAddress: " + crlHttpAddress);
 
     }
 }
